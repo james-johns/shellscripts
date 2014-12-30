@@ -1,0 +1,93 @@
+#!/bin/sh
+# project specific environment variables, selected by $PROJECT
+#
+# $ORIG_PATH is set to $PATH before PATH has been changed.
+#
+#
+
+function set_project {
+    if [ -z $1 ]; then
+        echo "set_project requires a parameter"
+        return
+    fi
+    echo "PROJECT=$1" > ~/.project
+    source ~/.project
+    source ~/.customise
+}
+
+function set_cross_compiler() {
+    if [ -z $1 ]; then
+        echo "Please specify the cross compiler target to switch to"
+        return
+    fi
+    if [[ "$1" == "none" ]]; then
+	export CROSS_COMPILE=
+	export PATH=$ORIG_PATH
+    else
+	export CROSS_COMPILE=$1-
+	export PATH=$ORIG_PATH:/opt/toolchains/$1/bin
+    fi
+}
+
+function create_link_to_project_root() {
+    if [ -z $PROJECT_ROOT ]; then
+	echo "PROJECT_ROOT must be set to create link"
+	return
+    else
+	if [ -h ~/projectroot ]; then
+	    rm ~/projectroot
+	fi
+	ln -s $PROJECT_ROOT ~/projectroot
+    fi
+}
+
+# Coloured prompt
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}$(if [[ $? = 0 ]]; then echo "\[\e[1;32m\]";else echo "\[\e[1;31m\]";fi)\u@\h\[\033[00m\]:\[\033[01;34m\] [\w] \[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h: [\w] $ '
+fi
+
+echo "PROJECT is $PROJECT"
+
+if [[ "$PROJECT" == "FINAL_YEAR" ]]; then
+    export ARCH=arm
+    export PROJECT_ROOT=/projects/university/final-year-project/
+    set_cross_compiler arm-none-eabihf
+    export PATH=$ORIG_PATH:/opt/toolchains/arm-cross/bin/
+    create_link_to_project_root
+elif [[ "$PROJECT" == "MSP430" ]]; then
+    export ARCH=msp430
+    export PROJECT_ROOT=/projects/
+    set_cross_compiler msp430
+    create_link_to_project_root
+elif [[ "$PROJECT" == "BAPEOS" ]]; then
+    export ARCH=arm
+    export PROJECT_ROOT=/projects/university/bapeos/XNOR-ESD/
+    set_cross_compiler arm-none-eabi
+    create_link_to_project_root
+elif [[ "$PROJECT" == "IDE" ]]; then
+    export ARCH=
+    export PROJECT_ROOT=/projects/general/ide/
+    set_cross_compiler none
+    create_link_to_project_root
+else
+    echo "none"
+    export ARCH=
+    export PROJECT_ROOT=/projects/
+    set_cross_compiler none
+    create_link_to_project_root
+fi
+
+
+function clear_cache_memory {
+    sudo sh -c 'free && sync && echo 3 > /proc/sys/vm/drop_caches && free'
+}
+
+function new_vm {
+    if [ -z $1 ]; then
+	echo "Must give a name to new VM"
+	return
+    fi
+    sudo virt-clone -o Maggie -n $1 -f /projects/VMs/$1.img
+}
