@@ -12,7 +12,7 @@ function set_project {
     fi
     echo "PROJECT=$1" > ~/.project
     source ~/.project
-    source ~/.customise
+    source ~/.bashrc
 }
 
 function set_cross_compiler() {
@@ -52,13 +52,13 @@ function new_project() {
 }
 
 # Coloured prompt
-PS1='${debian_chroot:+($debian_chroot)}$(if [[ $? = 0 ]]; then echo "\[\e[1;32m\]";else echo "\[\e[1;31m\]";fi)\u@\h\[\033[00m\]:\[\033[01;34m\] [\w] \[\033[00m\]\$ '
+PS1='${debian_chroot:+($debian_chroot)}$(jobs | wc -l) $(if [[ $? = 0 ]]; then echo "\[\e[1;32m\]";else echo "\[\e[1;31m\]";fi)\u@\h\[\033[00m\]:\[\033[01;34m\] [\w] \[\033[00m\]\$ '
 
 if [ -f ~/.project ]; then
     . ~/.project
 fi
 
-echo "PROJECT is $PROJECT"
+echo -e '\033]2;PROJECT is '$PROJECT'\007'
 
 if [ -f ~/.project_defs ]; then
     . ~/.project_defs
