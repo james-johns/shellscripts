@@ -9,7 +9,7 @@
 ######
 
 function clear_cache_memory {
-    sudo sh -c 'free && sync && echo 3 > /proc/sys/vm/drop_caches && free'
+    sudo sh -c 'free -h && sync && echo 3 > /proc/sys/vm/drop_caches && free -h'
 }
 
 function new_vm {
@@ -19,6 +19,8 @@ function new_vm {
     fi
     sudo virt-clone -o Maggie -n $1 -f /projects/VMs/$1.img
 }
+
+export EDITOR="emacs -nw"
 
 if [ -f ./projects.sh ]; then
     . ./projects.sh
